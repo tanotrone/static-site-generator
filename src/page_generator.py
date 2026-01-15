@@ -16,7 +16,7 @@ def extract_title(markdown):
 
     raise Exception ("no header found")
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, basepath):
     print(f"Generating page {from_path} to {dest_path} using {template_path}")
     path = Path(from_path)
     template_path = Path(template_path)
@@ -31,13 +31,16 @@ def generate_page(from_path, template_path, dest_path):
 
     full_html = template.replace("{{ Title }}", title).replace("{{ Content }}", html)
 
+    full_html = full_html.replace('href="/', f'href="{basepath}')
+    full_html = full_html.replace('src="/', f'src="{basepath}')
+
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(full_html, encoding="utf-8")
 
 
 
 
-def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path, basepath):
     # 1. Loop through everything in the content folder
     for filename in os.listdir(dir_path_content):
         # 2. Create the full paths
@@ -48,12 +51,12 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
             # IMPORTANT: We want the destination to match the filename, but with .html
             dest_filename = filename.replace(".md", ".html")
             dest_path = os.path.join(dest_dir_path, dest_filename)
-            generate_page(from_path, template_path, dest_path)
+            generate_page(from_path, template_path, dest_path, basepath)
             
         # 4. If it's a directory, recurse into it
         elif os.path.isdir(from_path):
             new_dest_dir = os.path.join(dest_dir_path, filename)
-            generate_pages_recursive(from_path, template_path, new_dest_dir)
+            generate_pages_recursive(from_path, template_path, new_dest_dir, basepath)
 
 
 
